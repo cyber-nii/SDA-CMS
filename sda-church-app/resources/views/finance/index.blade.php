@@ -12,7 +12,7 @@
                         'csv' => route('finance.export', array_merge(request()->query(), ['format' => 'csv'])),
                         'pdf' => route('finance.export', array_merge(request()->query(), ['format' => 'pdf']))
                     ]" />
-                    <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-gray-900 border border-transparent rounded-lg font-bold text-xs text-white uppercase tracking-widest hover:bg-gray-800 transition-all duration-300 shadow-sm hover:shadow-lg active:scale-95">
+                    <button onclick="window.print()" class="inline-flex items-center px-4 py-2 bg-emerald-700 border border-transparent rounded-lg font-bold text-xs text-black uppercase tracking-widest hover:bg-gray-800 transition-all duration-300 shadow-sm hover:shadow-lg active:scale-95">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                         </svg>
@@ -38,7 +38,7 @@
         }
     </style>
 
-    <div class="py-12 bg-[#fcfdfd] min-h-screen print:min-h-0 relative overflow-hidden" x-data="{ deleteUrl: '', deleteTitle: '' }">
+    <div class="py-12 bg-[#fcfdfd] min-h-screen print:min-h-0 relative overflow-hidden" x-data="{ deleteUrl: '', deleteTitle: '', activeForm: 'tithe' }">
         <!-- Subtle Background Decorative Elements -->
         <div class="absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-emerald-50/30 to-transparent pointer-events-none"></div>
 
@@ -126,7 +126,7 @@
                             Record Transaction
                         </h3>
 
-                        <div x-data="{ activeForm: 'tithe' }">
+                        <div>
                             <!-- Unified Tab Selector -->
                             <div class="flex flex-wrap gap-1 mb-6 bg-gray-50/80 p-1.5 rounded-xl border border-gray-100/80 backdrop-blur-sm">
                                 <button @click="activeForm = 'tithe'" :class="activeForm === 'tithe' ? 'bg-white shadow-sm text-emerald-600 font-bold scale-100 ring-1 ring-gray-900/5' : 'text-gray-500 hover:text-gray-700 font-medium scale-95'" class="flex-1 py-2 text-xs uppercase tracking-wider rounded-lg transition-all duration-200">Tithe</button>
@@ -302,11 +302,60 @@
                     </div>
                 </div>
 
-                <!-- Right Column: Recent Records Data Tables -->
+                <!-- Right Column: Recent Records - synced to active tab -->
                 <div class="xl:col-span-2 space-y-6 print:mt-8">
-                    
-                    <!-- Integrated Finance History (Expenditures) -->
-                    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none break-inside-avoid">
+
+                    <!-- Recent Tithes -->
+                    <div x-show="activeForm === 'tithe'"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none break-inside-avoid">
+                        <div class="flex justify-between items-center p-6 border-b border-gray-50 bg-gray-50/30">
+                            <h3 class="text-lg font-black text-gray-900 tracking-tight flex items-center">
+                                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2.5 animate-pulse"></span>
+                                Recent Tithes
+                            </h3>
+                            <span class="text-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 px-2.5 py-1 rounded-md font-bold uppercase tracking-widest">Inflow</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50/50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                                        <th class="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Member</th>
+                                        <th class="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
+                                        <th class="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest print:hidden">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50 bg-white">
+                                    @forelse($tithes as $tithe)
+                                        <tr class="hover:bg-emerald-50/30 transition-colors group">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{{ $tithe->date_received->format('M d, Y') }}</td>
+                                            <td class="px-6 py-4 text-sm font-bold text-gray-900">{{ $tithe->member->first_name }} {{ $tithe->member->last_name }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                <span class="text-sm font-black text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md">GHS {{ number_format($tithe->amount, 2) }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium print:hidden">
+                                                <button type="button" @click="deleteUrl = '{{ route('finance.tithe.destroy', $tithe->tithe_id) }}'; deleteTitle = 'Tithe — {{ addslashes($tithe->member->first_name . ' ' . $tithe->member->last_name) }}'; $dispatch('open-modal', 'confirm-delete')" class="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-red-50 rounded">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr><td colspan="4" class="px-6 py-8 text-center text-sm text-gray-400 italic">No tithes recorded yet.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Recent Expenditures -->
+                    <div x-show="activeForm === 'expenditure'"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none break-inside-avoid">
                         <div class="flex justify-between items-center p-6 border-b border-gray-50 bg-gray-50/30">
                             <h3 class="text-lg font-black text-gray-900 tracking-tight">Recent Expenditures</h3>
                             <span class="text-[10px] bg-red-50 text-red-600 border border-red-100 px-2.5 py-1 rounded-md font-bold uppercase tracking-widest">Outflow</span>
@@ -324,9 +373,7 @@
                                 <tbody class="divide-y divide-gray-50 bg-white">
                                     @forelse($expenditures as $exp)
                                         <tr class="hover:bg-red-50/30 transition-colors group">
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">
-                                                {{ $exp->expenditure_date->format('M d, Y') }}
-                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{{ $exp->expenditure_date->format('M d, Y') }}</td>
                                             <td class="px-6 py-4">
                                                 <div class="text-sm font-bold text-gray-900">{{ $exp->title }}</div>
                                                 <div class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
@@ -349,71 +396,101 @@
                                 </tbody>
                             </table>
                         </div>
+                    </div>
 
-                    <!-- Side-by-Side Small Tables -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <!-- Tithes List -->
-                        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none break-inside-avoid">
-                            <div class="p-5 border-b border-gray-50 bg-gray-50/30">
-                                <h3 class="text-sm font-black text-gray-900 uppercase tracking-widest flex items-center">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2"></span> Tithes
-                                </h3>
-                            </div>
-                            <div class="overflow-x-auto">
-                                <table class="min-w-full">
-                                    <tbody class="divide-y divide-gray-50">
-                                        @forelse($tithes as $tithe)
-                                            <tr class="hover:bg-emerald-50/30 transition-colors">
-                                                <td class="px-5 py-3 whitespace-nowrap text-xs text-gray-500">{{ $tithe->date_received->format('M d') }}</td>
-                                                <td class="px-5 py-3 text-xs font-bold text-gray-900 truncate max-w-[120px]">{{ $tithe->member->first_name }} {{ $tithe->member->last_name }}</td>
-                                                <td class="px-5 py-3 whitespace-nowrap text-right text-xs font-black text-emerald-600">GHS {{ number_format($tithe->amount, 2) }}</td>
-                                            </tr>
-                                        @empty
-                                            <tr><td colspan="3" class="px-5 py-6 text-center text-xs text-gray-400">No tithes recorded.</td></tr>
-                                        @endforelse
-                                    </tbody>
-                                </table>
-                            </div>
+                    <!-- Recent Offerings -->
+                    <div x-show="activeForm === 'offering'"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none break-inside-avoid">
+                        <div class="flex justify-between items-center p-6 border-b border-gray-50 bg-gray-50/30">
+                            <h3 class="text-lg font-black text-gray-900 tracking-tight flex items-center">
+                                <span class="w-2.5 h-2.5 rounded-full bg-teal-500 mr-2.5"></span>
+                                Recent Offerings
+                            </h3>
+                            <span class="text-[10px] bg-teal-50 text-teal-600 border border-teal-100 px-2.5 py-1 rounded-md font-bold uppercase tracking-widest">Inflow</span>
                         </div>
-
-                        <!-- Combined Offerings/Donations -->
-                        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-5 print:border-none print:shadow-none break-inside-avoid flex flex-col gap-6">
-                            <div>
-                                <h4 class="text-[10px] font-black text-teal-600 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Recent Offerings</h4>
-                                <div class="divide-y divide-gray-50">
-                                    @forelse($offerings->take(3) as $off)
-                                        <div class="flex justify-between items-center group py-2">
-                                            <div class="flex flex-col">
-                                                <span class="text-xs font-bold text-gray-900 group-hover:text-teal-700 transition">{{ $off->category }}</span>
-                                                <span class="text-[10px] text-gray-400">{{ $off->date_received->format('M d, Y') }}</span>
-                                            </div>
-                                            <span class="text-xs font-black text-gray-700">GHS {{ number_format($off->amount, 2) }}</span>
-                                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50/50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                                        <th class="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Category</th>
+                                        <th class="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
+                                        <th class="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest print:hidden">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50 bg-white">
+                                    @forelse($offerings as $off)
+                                        <tr class="hover:bg-teal-50/30 transition-colors group">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{{ $off->date_received->format('M d, Y') }}</td>
+                                            <td class="px-6 py-4 text-sm font-bold text-gray-900">{{ $off->category }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                <span class="text-sm font-black text-teal-600 bg-teal-50 px-2.5 py-1 rounded-md">GHS {{ number_format($off->amount, 2) }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium print:hidden">
+                                                <button type="button" @click="deleteUrl = '{{ route('finance.offering.destroy', $off->offering_id) }}'; deleteTitle = '{{ addslashes($off->category) }} Offering'; $dispatch('open-modal', 'confirm-delete')" class="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-red-50 rounded">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </td>
+                                        </tr>
                                     @empty
-                                        <p class="text-xs text-gray-400 italic py-2">No recent offerings.</p>
+                                        <tr><td colspan="4" class="px-6 py-8 text-center text-sm text-gray-400 italic">No offerings recorded yet.</td></tr>
                                     @endforelse
-                                </div>
-                            </div>
-                            <div>
-                                <h4 class="text-[10px] font-black text-blue-600 uppercase tracking-widest border-b border-gray-100 pb-2 mb-3">Recent Donations</h4>
-                                <div class="divide-y divide-gray-50">
-                                    @forelse($donations->take(3) as $don)
-                                        <div class="flex justify-between items-center group py-2">
-                                            <div class="flex flex-col">
-                                                <span class="text-xs font-bold text-gray-900 group-hover:text-blue-700 transition truncate max-w-[150px]">{{ $don->purpose }}</span>
-                                                <span class="text-[10px] text-gray-400">{{ $don->date_received->format('M d, Y') }}</span>
-                                            </div>
-                                            <span class="text-xs font-black text-gray-700">GHS {{ number_format($don->amount, 2) }}</span>
-                                        </div>
-                                    @empty
-                                        <p class="text-xs text-gray-400 italic py-2">No recent donations.</p>
-                                    @endforelse
-                                </div>
-                            </div>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
 
-                    <!-- Funds Controller Records -->
+                    <!-- Recent Donations -->
+                    <div x-show="activeForm === 'donation'"
+                         x-transition:enter="transition ease-out duration-300"
+                         x-transition:enter-start="opacity-0 translate-y-2"
+                         x-transition:enter-end="opacity-100 translate-y-0"
+                         class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none break-inside-avoid">
+                        <div class="flex justify-between items-center p-6 border-b border-gray-50 bg-gray-50/30">
+                            <h3 class="text-lg font-black text-gray-900 tracking-tight flex items-center">
+                                <span class="w-2.5 h-2.5 rounded-full bg-blue-500 mr-2.5"></span>
+                                Recent Donations
+                            </h3>
+                            <span class="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 px-2.5 py-1 rounded-md font-bold uppercase tracking-widest">Inflow</span>
+                        </div>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full">
+                                <thead class="bg-gray-50/50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Date</th>
+                                        <th class="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Purpose</th>
+                                        <th class="px-6 py-3 text-left text-[10px] font-black text-gray-400 uppercase tracking-widest">Donor</th>
+                                        <th class="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest">Amount</th>
+                                        <th class="px-6 py-3 text-right text-[10px] font-black text-gray-400 uppercase tracking-widest print:hidden">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-50 bg-white">
+                                    @forelse($donations as $don)
+                                        <tr class="hover:bg-blue-50/30 transition-colors group">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-medium">{{ $don->date_received->format('M d, Y') }}</td>
+                                            <td class="px-6 py-4 text-sm font-bold text-gray-900">{{ $don->purpose }}</td>
+                                            <td class="px-6 py-4 text-sm text-gray-500">{{ $don->member ? $don->member->first_name . ' ' . $don->member->last_name : '—' }}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right">
+                                                <span class="text-sm font-black text-blue-600 bg-blue-50 px-2.5 py-1 rounded-md">GHS {{ number_format($don->amount, 2) }}</span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium print:hidden">
+                                                <button type="button" @click="deleteUrl = '{{ route('finance.donation.destroy', $don->donation_id) }}'; deleteTitle = '{{ addslashes($don->purpose) }} Donation'; $dispatch('open-modal', 'confirm-delete')" class="text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-all p-1 hover:bg-red-50 rounded">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr><td colspan="5" class="px-6 py-8 text-center text-sm text-gray-400 italic">No donations recorded yet.</td></tr>
+                                    @endforelse
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Funds Controller Records (always visible) -->
                     <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden print:border-none print:shadow-none break-inside-avoid">
                         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center p-6 border-b border-gray-50 bg-gray-50/30 gap-4">
                             <h3 class="text-lg font-black text-gray-900 tracking-tight flex items-center">
@@ -472,7 +549,6 @@
                                     </table>
                                 </div>
                             </div>
-                        </div>
 
                             <!-- Class Funds -->
                             <div x-show="fundsTab === 'classes'" x-cloak>
