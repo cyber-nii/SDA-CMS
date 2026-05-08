@@ -115,6 +115,18 @@
                                 </select>
                             </div>
 
+                            <!-- Marital Status -->
+                            <div>
+                                <label for="marital_status" class="block font-semibold text-sm text-gray-700">Marital Status</label>
+                                <select id="marital_status" name="marital_status" class="block mt-1 w-full rounded-lg shadow-sm border-gray-300 focus:border-primary-500 focus:ring focus:ring-primary-200 focus:ring-opacity-50 transition-colors bg-gray-50 focus:bg-white">
+                                    <option value="" {{ old('marital_status') ? '' : 'selected' }}>Select Status</option>
+                                    <option value="Single" {{ old('marital_status') == 'Single' ? 'selected' : '' }}>Single</option>
+                                    <option value="Married" {{ old('marital_status') == 'Married' ? 'selected' : '' }}>Married</option>
+                                    <option value="Widowed" {{ old('marital_status') == 'Widowed' ? 'selected' : '' }}>Widowed</option>
+                                    <option value="Divorced" {{ old('marital_status') == 'Divorced' ? 'selected' : '' }}>Divorced</option>
+                                </select>
+                            </div>
+
                             <!-- Email Address -->
                             <div>
                                 <label for="email" class="block font-semibold text-sm text-gray-700">Email Address <span class="text-red-500">*</span></label>

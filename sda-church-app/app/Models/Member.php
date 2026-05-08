@@ -19,6 +19,7 @@ class Member extends Model
         'contact_number',
         'email',
         'address',
+        'marital_status',
         'baptism_date',
         'status',
         'profile_picture',
