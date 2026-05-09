@@ -12,7 +12,7 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex items-center">
-                    @if(!in_array(Auth::user()->role, ['Treasurer', 'Funds Controller']))
+                    @if(!in_array(Auth::user()->role, ['Treasurer', 'Funds Controller', 'Member']))
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
@@ -22,6 +22,20 @@
                         <x-nav-link :href="route('departments.index')" :active="request()->routeIs('departments.*')">
                             {{ __('Departments') }}
                         </x-nav-link>
+                    @elseif(Auth::user()->role === 'Member')
+                        @php $navAnnouncementCount = \App\Models\Announcement::active()->count(); @endphp
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                        <a href="{{ route('member.announcements') }}"
+                           class="{{ request()->routeIs('member.announcements') ? 'border-primary-500 text-gray-900' : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300' }} inline-flex items-center gap-1.5 px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out">
+                            {{ __('Announcements') }}
+                            @if($navAnnouncementCount > 0)
+                                <span class="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold bg-primary-600 text-white rounded-full leading-none">
+                                    {{ $navAnnouncementCount }}
+                                </span>
+                            @endif
+                        </a>
                     @endif
                     @if(Auth::user()->role === 'Super Admin')
                         <div class="hidden sm:flex sm:items-center">
@@ -77,7 +91,7 @@
                             </x-dropdown>
                         </div>
                     @endif
-                    @if(!in_array(Auth::user()->role, ['Treasurer', 'Funds Controller']))
+                    @if(!in_array(Auth::user()->role, ['Treasurer', 'Funds Controller', 'Member']))
                         <div class="hidden sm:flex sm:items-center">
                             <x-dropdown align="right" width="48">
                                 <x-slot name="trigger">
@@ -211,7 +225,7 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
         <div class="pt-2 pb-3 space-y-1">
-            @if(!in_array(Auth::user()->role, ['Treasurer', 'Funds Controller']))
+            @if(!in_array(Auth::user()->role, ['Treasurer', 'Funds Controller', 'Member']))
                 <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                     {{ __('Dashboard') }}
                 </x-responsive-nav-link>
@@ -220,6 +234,18 @@
                 </x-responsive-nav-link>
                 <x-responsive-nav-link :href="route('departments.index')" :active="request()->routeIs('departments.*')">
                     {{ __('Departments') }}
+                </x-responsive-nav-link>
+            @elseif(Auth::user()->role === 'Member')
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('member.announcements')" :active="request()->routeIs('member.announcements')">
+                    {{ __('Announcements') }}
+                    @if(isset($navAnnouncementCount) && $navAnnouncementCount > 0)
+                        <span class="ml-1 inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold bg-primary-600 text-white rounded-full leading-none">
+                            {{ $navAnnouncementCount }}
+                        </span>
+                    @endif
                 </x-responsive-nav-link>
             @endif
             @if(Auth::user()->role === 'Super Admin')
@@ -246,7 +272,7 @@
                     {{ __('Departments') }}
                 </x-responsive-nav-link>
             @endif
-            @if(!in_array(Auth::user()->role, ['Treasurer', 'Funds Controller']))
+            @if(!in_array(Auth::user()->role, ['Treasurer', 'Funds Controller', 'Member']))
                 <div class="px-4 py-2 text-xs font-semibold tracking-wide text-gray-500 uppercase">{{ __('Records') }}</div>
                 <x-responsive-nav-link :href="route('documents.index')" :active="request()->routeIs('documents.*')">
                     {{ __('Documents') }}

@@ -27,4 +27,5 @@ Thumbs.db
 .cursor
 .gemini
 .ui-design
+/public/storage
 

@@ -49,6 +49,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/change-password', [\App\Http\Controllers\ForcePasswordController::class, 'store'])->name('password.change.store');
 
     Route::get('/my-dashboard', [\App\Http\Controllers\MemberDashboardController::class, 'index'])->name('member.dashboard');
+    Route::get('/activity-log', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-log.index');
+    Route::get('/my-announcements', [\App\Http\Controllers\MemberAnnouncementsController::class, 'index'])->name('member.announcements');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

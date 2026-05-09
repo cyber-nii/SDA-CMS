@@ -16,6 +16,16 @@ class Announcement extends Model
         'created_by',
     ];
 
+    public function scopeActive($query)
+    {
+        return $query
+            ->whereDate('publish_date', '<=', now())
+            ->where(function ($q) {
+                $q->whereNull('expiry_date')
+                  ->orWhereDate('expiry_date', '>=', now());
+            });
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

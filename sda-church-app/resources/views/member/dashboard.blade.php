@@ -143,6 +143,68 @@
                 </div>
 
             </div>
+
+            <!-- Announcements Section -->
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
+                 x-data="{ open: true }">
+
+                <button @click="open = !open"
+                        class="w-full flex items-center justify-between p-6 text-left hover:bg-gray-50 transition-colors duration-150">
+                    <h3 class="text-lg font-bold text-gray-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                        </svg>
+                        Church Announcements
+                        @if($announcementCount > 0)
+                            <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-primary-600 text-white rounded-full">
+                                {{ $announcementCount }}
+                            </span>
+                        @endif
+                    </h3>
+                    <svg class="w-5 h-5 text-gray-400 transition-transform duration-200"
+                         :class="{ 'rotate-180': !open }"
+                         fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </button>
+
+                <div x-show="open" x-transition>
+                    <div class="px-6 pb-6 space-y-4">
+                        @forelse($announcements as $announcement)
+                            <div class="border-l-4 border-primary-500 bg-primary-50 rounded-r-xl p-4 shadow-sm">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="font-bold text-gray-900 text-sm leading-snug">{{ $announcement->title }}</p>
+                                        <p class="mt-1 text-sm text-gray-600 whitespace-pre-line">{{ $announcement->content }}</p>
+                                    </div>
+                                    <div class="shrink-0 text-right">
+                                        <span class="text-xs text-gray-400">
+                                            {{ \Carbon\Carbon::parse($announcement->publish_date)->format('M d, Y') }}
+                                        </span>
+                                        @if($announcement->expiry_date)
+                                            <span class="block mt-1 text-xs text-amber-600 font-medium">
+                                                Expires {{ \Carbon\Carbon::parse($announcement->expiry_date)->format('M d') }}
+                                            </span>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @empty
+                            <p class="text-sm text-gray-400 italic text-center py-4">No announcements at this time. Check back later.</p>
+                        @endforelse
+
+                        @if($announcementCount > 5)
+                            <div class="pt-2 text-center">
+                                <a href="{{ route('member.announcements') }}"
+                                   class="text-sm font-semibold text-primary-600 hover:text-primary-800 transition">
+                                    View all {{ $announcementCount }} announcements &rarr;
+                                </a>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </x-app-layout>

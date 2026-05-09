@@ -81,8 +81,8 @@
                             <h3 class="text-lg font-bold text-neutral-900">Recent Activities</h3>
                             <p class="text-sm text-neutral-500 mt-1">Latest actions recorded in the system.</p>
                         </div>
-                        <a href="{{ route('members.index') }}" class="text-primary-600 hover:text-primary-800 text-sm font-semibold transition-colors flex items-center gap-1">
-                            View All 
+                        <a href="{{ route('activity-log.index') }}" class="text-primary-600 hover:text-primary-800 text-sm font-semibold transition-colors flex items-center gap-1">
+                            View All
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                         </a>
                     </div>
