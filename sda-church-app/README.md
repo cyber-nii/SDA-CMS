@@ -1,59 +1,272 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SDA Church Management System (SDA-CMS)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A web-based church management system for Seventh-day Adventist congregations. Manages members, departments, finances (tithes, offerings, donations, expenditures), baptisms, transfers, announcements, and documents — with role-based access control.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Requirements
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Before you begin, make sure the following are installed on your machine:
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+| Tool | Minimum Version | Check with |
+|------|----------------|------------|
+| PHP | 8.2+ | `php -v` |
+| Composer | 2.x | `composer -V` |
+| Node.js | 18+ | `node -v` |
+| npm | 9+ | `npm -v` |
+| SQLite | (bundled with PHP) | `php -m \| grep sqlite` |
 
-## Learning Laravel
+> **Windows users:** PHP needs to have the `pdo_sqlite` and `fileinfo` extensions enabled in your `php.ini`.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+---
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+## Installation
 
-## Laravel Sponsors
+### 1. Clone the repository
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+git clone <your-repo-url> SDA-CMS
+cd SDA-CMS
+```
 
-### Premium Partners
+### 2. Navigate into the app directory
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+> **Important:** All commands from this point on must be run from inside the `sda-church-app` folder.
 
-## Contributing
+```bash
+cd sda-church-app
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+### 3. Install PHP dependencies
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+composer install
+```
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 4. Set up the environment file
 
-## License
+```bash
+cp .env.example .env
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Then open `.env` and update the `APP_NAME`:
+
+```env
+APP_NAME="SDA Church"
+```
+
+---
+
+### 5. Generate the application key
+
+```bash
+php artisan key:generate
+```
+
+---
+
+### 6. Create the SQLite database file
+
+```bash
+# Linux / macOS
+touch database/database.sqlite
+
+# Windows (PowerShell)
+New-Item -ItemType File database\database.sqlite
+```
+
+---
+
+### 7. Run database migrations
+
+```bash
+php artisan migrate
+```
+
+---
+
+### 8. Install frontend dependencies and build assets
+
+```bash
+npm install
+npm run build
+```
+
+---
+
+### 9. Create the storage symlink
+
+This links `public/storage` to `storage/app/public` so uploaded files (documents, profile pictures) are publicly accessible.
+
+```bash
+php artisan storage:link
+```
+
+---
+
+### 10. Create the storage folders
+
+These folders hold uploaded files. Create them so file uploads work immediately:
+
+```bash
+# Linux / macOS
+mkdir -p storage/app/public/documents
+mkdir -p storage/app/public/profile_pictures
+
+# Windows (PowerShell)
+New-Item -ItemType Directory -Force -Path storage\app\public\documents
+New-Item -ItemType Directory -Force -Path storage\app\public\profile_pictures
+```
+
+| Folder | Purpose |
+|--------|---------|
+| `storage/app/public/documents` | Church documents uploaded via the Documents module |
+| `storage/app/public/profile_pictures` | Member profile photos |
+
+---
+
+### 11. Start the development server
+
+```bash
+php artisan serve
+```
+
+The app will be available at **http://localhost:8000**.
+
+---
+
+## First-Time Setup: Create the Admin Account
+
+On a fresh install there are no user accounts. Visit the admin creation page to set up your first Super Admin:
+
+```
+http://localhost:8000/create-admin
+```
+
+Fill in the form and submit. Once the admin account is created, **do not share this URL** — it requires no authentication. You can disable it later by removing or commenting out the two `/create-admin` routes in `routes/web.php`.
+
+---
+
+## Running the Full Dev Environment
+
+To run the PHP server, queue worker, log viewer, and Vite hot-reload all at once:
+
+```bash
+composer dev
+```
+
+Or run each process separately in different terminals:
+
+```bash
+# Terminal 1 — Laravel server
+php artisan serve
+
+# Terminal 2 — Vite (hot module replacement)
+npm run dev
+
+# Terminal 3 — Queue worker (for background jobs / emails)
+php artisan queue:listen
+```
+
+---
+
+## User Roles
+
+| Role | Access Level |
+|------|-------------|
+| Super Admin | Full access to everything |
+| Pastor | Full access except finance management |
+| Clerk | Members, baptisms, transfers, documents, announcements |
+| Treasurer | Finance module only |
+| Head Elder | Dashboard + member read access |
+| Department Leader | Their department and members |
+| Funds Controller | Class and department funds only |
+| Member | Personal dashboard and announcements |
+
+New members are given the default password `SDA-1234` and are prompted to change it on first login.
+
+---
+
+## Optional Configuration
+
+### Using MySQL instead of SQLite
+
+Update your `.env`:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=sda_cms
+DB_USERNAME=root
+DB_PASSWORD=your_password
+```
+
+Create the database in MySQL first, then run `php artisan migrate`.
+
+### Email (for password resets)
+
+The default mailer writes emails to the log file (`storage/logs/laravel.log`). To send real emails, update `.env` with your SMTP credentials:
+
+```env
+MAIL_MAILER=smtp
+MAIL_HOST=smtp.mailtrap.io
+MAIL_PORT=2525
+MAIL_USERNAME=your_username
+MAIL_PASSWORD=your_password
+MAIL_FROM_ADDRESS="noreply@yourchurch.org"
+MAIL_FROM_NAME="SDA Church"
+```
+
+---
+
+## Running Tests
+
+```bash
+composer test
+```
+
+---
+
+## Project Structure (key paths)
+
+```
+sda-church-app/
+├── app/
+│   ├── Http/Controllers/   # All controllers
+│   ├── Models/             # Eloquent models
+│   └── Services/           # ExportService (CSV, PDF, ZIP)
+├── database/
+│   ├── migrations/         # Database schema
+│   └── database.sqlite     # SQLite database (created in step 6)
+├── public/
+│   └── storage/            # Symlink to storage/app/public (step 9)
+├── resources/views/        # Blade templates
+├── routes/web.php          # All application routes
+└── storage/app/public/
+    ├── documents/          # Uploaded church documents
+    └── profile_pictures/   # Member profile photos
+```
+
+---
+
+## Troubleshooting
+
+**"No application encryption key has been specified"**
+Run `php artisan key:generate`.
+
+**"Database file not found" / SQLite errors**
+Make sure `database/database.sqlite` exists (step 6).
+
+**Uploaded files not displaying / 404 on images**
+Run `php artisan storage:link` (step 9) and confirm the `public/storage` symlink exists.
+
+**Assets not loading (CSS/JS 404)**
+Run `npm run build` or `npm run dev` to compile assets.
+
+**"php_fileinfo" extension missing (Windows)**
+Open your `php.ini`, find `;extension=fileinfo`, and remove the leading semicolon. Restart your server.
