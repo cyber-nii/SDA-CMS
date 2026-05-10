@@ -30,4 +30,9 @@ class Announcement extends Model
     {
         return $this->belongsTo(User::class, 'created_by');
     }
+
+    public function readByUsers()
+    {
+        return $this->belongsToMany(User::class, 'announcement_user', 'announcement_id', 'user_id');
+    }
 }

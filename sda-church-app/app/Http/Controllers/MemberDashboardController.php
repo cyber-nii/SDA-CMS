@@ -18,8 +18,12 @@ class MemberDashboardController extends Controller
         $member = $user->member()->with(['departments', 'tithes', 'donations', 'baptisms', 'transfers'])->first();
 
         $announcements = Announcement::active()->latest('publish_date')->take(5)->get();
-        $announcementCount = Announcement::active()->count();
+        $readAnnouncementIds = $user->readAnnouncements()->pluck('announcements.announcement_id')->toArray();
+        $announcementCount = Announcement::active()
+            ->whereDoesntHave('readByUsers', function ($q) use ($user) {
+                $q->where('user_id', $user->id);
+            })->count();
 
-        return view('member.dashboard', compact('member', 'user', 'announcements', 'announcementCount'));
+        return view('member.dashboard', compact('member', 'user', 'announcements', 'announcementCount', 'readAnnouncementIds'));
     }
 }

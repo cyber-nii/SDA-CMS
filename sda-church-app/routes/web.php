@@ -51,7 +51,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/my-dashboard', [\App\Http\Controllers\MemberDashboardController::class, 'index'])->name('member.dashboard');
     Route::get('/activity-log', [\App\Http\Controllers\ActivityLogController::class, 'index'])->name('activity-log.index');
     Route::get('/my-announcements', [\App\Http\Controllers\MemberAnnouncementsController::class, 'index'])->name('member.announcements');
-
+    Route::post('/my-announcements/{announcement}/read', [\App\Http\Controllers\MemberAnnouncementsController::class, 'markAsRead'])->name('member.announcements.read');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

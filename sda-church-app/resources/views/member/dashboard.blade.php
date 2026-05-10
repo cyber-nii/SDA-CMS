@@ -156,7 +156,7 @@
                         </svg>
                         Church Announcements
                         @if($announcementCount > 0)
-                            <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-primary-600 text-white rounded-full">
+                            <span id="dashboard-announcement-badge" class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-primary-600 text-white rounded-full">
                                 {{ $announcementCount }}
                             </span>
                         @endif
@@ -171,33 +171,96 @@
                 <div x-show="open" x-transition>
                     <div class="px-6 pb-6 space-y-4">
                         @forelse($announcements as $announcement)
-                            <div class="border-l-4 border-primary-500 bg-primary-50 rounded-r-xl p-4 shadow-sm">
+                            @php
+                                $isRead = in_array($announcement->announcement_id, $readAnnouncementIds);
+                            @endphp
+                            <div x-data="{ read: {{ $isRead ? 'true' : 'false' }} }"
+                                 @click="
+                                    $dispatch('open-modal', 'announcement-modal-{{ $announcement->announcement_id }}');
+                                    if (!read) {
+                                        fetch('{{ route('member.announcements.read', $announcement->announcement_id) }}', {
+                                            method: 'POST',
+                                            headers: {
+                                                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json'
+                                            }
+                                        }).then(response => {
+                                            if(response.ok) {
+                                                read = true;
+                                                let desktopBadge = document.getElementById('announcement-badge-desktop');
+                                                let mobileBadge = document.getElementById('announcement-badge-mobile');
+                                                let dashboardBadge = document.getElementById('dashboard-announcement-badge');
+                                                let decreaseBadge = (badge) => {
+                                                    if(badge) {
+                                                        let count = parseInt(badge.innerText) - 1;
+                                                        if(count > 0) badge.innerText = count;
+                                                        else badge.style.display = 'none';
+                                                    }
+                                                };
+                                                decreaseBadge(desktopBadge);
+                                                decreaseBadge(mobileBadge);
+                                                decreaseBadge(dashboardBadge);
+                                            }
+                                        });
+                                    }
+                                 "
+                                 class="border-l-4 cursor-pointer transition-all duration-150 rounded-r-xl p-4 shadow-sm"
+                                 :class="read ? 'border-gray-300 bg-gray-50 opacity-80' : 'border-primary-500 bg-primary-50 hover:bg-primary-100'">
                                 <div class="flex items-start justify-between gap-4">
                                     <div class="min-w-0 flex-1">
-                                        <p class="font-bold text-gray-900 text-sm leading-snug">{{ $announcement->title }}</p>
-                                        <p class="mt-1 text-sm text-gray-600 whitespace-pre-line">{{ $announcement->content }}</p>
+                                        <div class="flex items-center gap-2">
+                                            <p class="font-bold text-gray-900 text-sm leading-snug">{{ $announcement->title }}</p>
+                                            <template x-if="!read">
+                                                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-100 text-red-800 uppercase tracking-wider">
+                                                    New
+                                                </span>
+                                            </template>
+                                        </div>
+                                        <p class="mt-1 text-sm text-gray-600 whitespace-pre-line line-clamp-2">{{ $announcement->content }}</p>
                                     </div>
                                     <div class="shrink-0 text-right">
                                         <span class="text-xs text-gray-400">
                                             {{ \Carbon\Carbon::parse($announcement->publish_date)->format('M d, Y') }}
                                         </span>
-                                        @if($announcement->expiry_date)
-                                            <span class="block mt-1 text-xs text-amber-600 font-medium">
-                                                Expires {{ \Carbon\Carbon::parse($announcement->expiry_date)->format('M d') }}
-                                            </span>
-                                        @endif
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Modal -->
+                            <x-modal name="announcement-modal-{{ $announcement->announcement_id }}" maxWidth="lg">
+                                <div class="p-6">
+                                    <h2 class="text-lg font-bold text-gray-900 mb-2">
+                                        {{ $announcement->title }}
+                                    </h2>
+                                    <div class="text-xs text-gray-500 mb-4 border-b pb-2">
+                                        Posted on {{ \Carbon\Carbon::parse($announcement->publish_date)->format('F j, Y') }}
+                                    </div>
+                                    <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line mb-4">
+                                        {{ $announcement->content }}
+                                    </p>
+                                    @if($announcement->expiry_date)
+                                        <p class="mt-4 text-xs text-amber-600 font-medium">
+                                            Expires {{ \Carbon\Carbon::parse($announcement->expiry_date)->format('F j, Y') }}
+                                        </p>
+                                    @endif
+                                    <div class="mt-6 flex justify-end">
+                                        <x-secondary-button x-on:click="$dispatch('close')">
+                                            {{ __('Close') }}
+                                        </x-secondary-button>
+                                    </div>
+                                </div>
+                            </x-modal>
                         @empty
                             <p class="text-sm text-gray-400 italic text-center py-4">No announcements at this time. Check back later.</p>
                         @endforelse
 
-                        @if($announcementCount > 5)
+                        @php $totalActive = \App\Models\Announcement::active()->count(); @endphp
+                        @if($totalActive > 5)
                             <div class="pt-2 text-center">
                                 <a href="{{ route('member.announcements') }}"
                                    class="text-sm font-semibold text-primary-600 hover:text-primary-800 transition">
-                                    View all {{ $announcementCount }} announcements &rarr;
+                                    View all {{ $totalActive }} announcements &rarr;
                                 </a>
                             </div>
                         @endif
