@@ -59,4 +59,9 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Member::class, 'member_id', 'member_id');
     }
+
+    public function readAnnouncements()
+    {
+        return $this->belongsToMany(Announcement::class, 'announcement_user', 'user_id', 'announcement_id');
+    }
 }

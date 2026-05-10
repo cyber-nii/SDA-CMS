@@ -43,7 +43,7 @@
                             selectedName: '',
                             items: [
                                 @foreach($members as $member)
-                                    { id: '{{ $member->member_id }}', name: '{{ addslashes($member->first_name) }} {{ addslashes($member->last_name) }} ({{ $member->member_id }})' },
+                                    { id: '{{ $member->member_id }}', name: '{{ addslashes($member->first_name) }} {{ addslashes($member->last_name) }}' },
                                 @endforeach
                             ],
                             init() {

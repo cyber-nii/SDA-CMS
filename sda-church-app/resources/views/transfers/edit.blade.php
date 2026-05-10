@@ -40,7 +40,7 @@
                             <option value="">— Select Member —</option>
                             @foreach($members as $member)
                                 <option value="{{ $member->member_id }}" {{ old('member_id', $transfer->member_id) == $member->member_id ? 'selected' : '' }}>
-                                    {{ $member->first_name }} {{ $member->last_name }} ({{ $member->member_id }})
+                                    {{ $member->first_name }} {{ $member->last_name }}
                                 </option>
                             @endforeach
                         </select>

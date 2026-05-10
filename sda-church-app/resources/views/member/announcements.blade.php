@@ -19,18 +19,75 @@
         <div class="max-w-3xl mx-auto sm:px-6 lg:px-8 space-y-6">
 
             @forelse($announcements as $announcement)
-                <article class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                    <div class="h-1 bg-gradient-to-r from-primary-500 to-primary-300"></div>
+                @php
+                    $isRead = in_array($announcement->announcement_id, $readAnnouncementIds);
+                @endphp
+                <article 
+                    x-data="{ read: {{ $isRead ? 'true' : 'false' }} }"
+                    @click="
+                        $dispatch('open-modal', 'announcement-modal-{{ $announcement->announcement_id }}');
+                        if (!read) {
+                            fetch('{{ route('member.announcements.read', $announcement->announcement_id) }}', {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Content-Type': 'application/json',
+                                    'Accept': 'application/json'
+                                }
+                            }).then(response => {
+                                if(response.ok) {
+                                    read = true;
+                                    let desktopBadge = document.getElementById('announcement-badge-desktop');
+                                    let mobileBadge = document.getElementById('announcement-badge-mobile');
+                                    if(desktopBadge) {
+                                        let count = parseInt(desktopBadge.innerText) - 1;
+                                        if(count > 0) desktopBadge.innerText = count;
+                                        else desktopBadge.style.display = 'none';
+                                    }
+                                    if(mobileBadge) {
+                                        let count = parseInt(mobileBadge.innerText) - 1;
+                                        if(count > 0) mobileBadge.innerText = count;
+                                        else mobileBadge.style.display = 'none';
+                                    }
+                                }
+                            });
+                        }
+                    "
+                    class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition duration-150 ease-in-out relative"
+                    :class="read ? 'opacity-80' : ''"
+                >
+                    <div class="h-1 bg-gradient-to-r" :class="read ? 'from-gray-300 to-gray-200' : 'from-primary-500 to-primary-300'"></div>
                     <div class="p-6">
                         <div class="flex items-start justify-between gap-4 mb-3">
-                            <h3 class="font-bold text-gray-900 text-lg leading-snug">
-                                {{ $announcement->title }}
-                            </h3>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-gray-900 text-lg leading-snug">
+                                    {{ $announcement->title }}
+                                </h3>
+                                <template x-if="!read">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                                        New
+                                    </span>
+                                </template>
+                            </div>
                             <span class="shrink-0 text-xs text-gray-400 pt-1">
                                 {{ \Carbon\Carbon::parse($announcement->publish_date)->format('M d, Y') }}
                             </span>
                         </div>
-                        <p class="text-gray-600 text-sm leading-relaxed whitespace-pre-line">
+                        <p class="text-gray-600 text-sm leading-relaxed whitespace-pre-line line-clamp-2">
+                            {{ $announcement->content }}
+                        </p>
+                    </div>
+                </article>
+
+                <x-modal name="announcement-modal-{{ $announcement->announcement_id }}" maxWidth="lg">
+                    <div class="p-6">
+                        <h2 class="text-lg font-bold text-gray-900 mb-2">
+                            {{ $announcement->title }}
+                        </h2>
+                        <div class="text-xs text-gray-500 mb-4 border-b pb-2">
+                            Posted on {{ \Carbon\Carbon::parse($announcement->publish_date)->format('F j, Y') }}
+                        </div>
+                        <p class="text-gray-700 text-sm leading-relaxed whitespace-pre-line mb-4">
                             {{ $announcement->content }}
                         </p>
                         @if($announcement->expiry_date)
@@ -38,8 +95,13 @@
                                 Expires {{ \Carbon\Carbon::parse($announcement->expiry_date)->format('F j, Y') }}
                             </p>
                         @endif
+                        <div class="mt-6 flex justify-end">
+                            <x-secondary-button x-on:click="$dispatch('close')">
+                                {{ __('Close') }}
+                            </x-secondary-button>
+                        </div>
                     </div>
-                </article>
+                </x-modal>
             @empty
                 <div class="text-center py-20">
                     <svg class="mx-auto w-14 h-14 text-gray-200 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

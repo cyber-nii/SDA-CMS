@@ -152,8 +152,15 @@
                         <div class="min-w-0">
                             <p class="text-xs text-neutral-500 font-medium uppercase tracking-wider leading-none mb-0.5">Years of Service</p>
                             <p class="text-sm font-bold text-gray-800 leading-tight">
-                                {{ $member->created_at->diffInYears(now()) }}
-                                <span class="text-xs font-normal text-neutral-500">yrs</span>
+                                @if($member->baptism_date)
+                                    @php
+                                        $diff = \Carbon\Carbon::parse($member->baptism_date)->diff(now());
+                                    @endphp
+                                    {{ $diff->y }} <span class="text-xs font-normal text-neutral-500">yrs,</span>
+                                    {{ $diff->m }} <span class="text-xs font-normal text-neutral-500">mos</span>
+                                @else
+                                    <span class="text-neutral-400 font-medium">N/A</span>
+                                @endif
                             </p>
                         </div>
                     </div>

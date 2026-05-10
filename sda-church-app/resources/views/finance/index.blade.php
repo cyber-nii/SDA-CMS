@@ -140,13 +140,59 @@
                                 <form method="POST" action="{{ route('finance.tithe.store') }}" class="space-y-4">
                                     @csrf
                                     <div>
-                                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Member</label>
-                                        <select name="member_id" class="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-colors text-sm py-3" required>
-                                            <option value="">Select Member</option>
-                                            @foreach($members as $member)
-                                                <option value="{{ $member->member_id }}">{{ $member->last_name }}, {{ $member->first_name }}</option>
-                                            @endforeach
-                                        </select>
+                                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Member <span class="text-red-500">*</span></label>
+                                        <div x-data="{
+                                            open: false,
+                                            search: '',
+                                            selectedId: '{{ old('member_id') }}',
+                                            selectedName: '',
+                                            items: [
+                                                @foreach($members as $member)
+                                                    { id: '{{ $member->member_id }}', name: '{{ addslashes($member->last_name) }}, {{ addslashes($member->first_name) }}' },
+                                                @endforeach
+                                            ],
+                                            init() {
+                                                if(this.selectedId) {
+                                                    let item = this.items.find(i => i.id == this.selectedId);
+                                                    if(item) { this.selectedName = item.name; this.search = item.name; }
+                                                }
+                                            },
+                                            get filteredItems() {
+                                                if (this.search === '' || this.search === this.selectedName) return [];
+                                                return this.items.filter(item => item.name.toLowerCase().includes(this.search.toLowerCase())).slice(0, 50);
+                                            },
+                                            selectItem(item) {
+                                                this.selectedId = item.id; this.selectedName = item.name;
+                                                this.search = item.name; this.open = false;
+                                            }
+                                        }" class="relative">
+                                            <input type="hidden" name="member_id" :value="selectedId">
+                                            <div class="relative">
+                                                <input type="text" x-model="search"
+                                                    @input="open = true; if(!search) selectedId = ''"
+                                                    @focus="open = true"
+                                                    @keydown.escape="open = false"
+                                                    placeholder="Search member by name…"
+                                                    class="w-full rounded-xl border-gray-200 bg-gray-50 focus:bg-white focus:border-emerald-500 focus:ring-emerald-500 transition-colors text-sm py-3 pr-10"
+                                                    autocomplete="off" required>
+                                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                                    <svg class="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                                                </div>
+                                            </div>
+                                            <div x-show="open && filteredItems.length > 0" @click.away="open = false"
+                                                class="absolute z-50 mt-1 w-full bg-white shadow-xl rounded-xl border border-gray-100 overflow-hidden" style="display:none;">
+                                                <ul class="max-h-56 overflow-y-auto divide-y divide-gray-50" role="listbox">
+                                                    <template x-for="item in filteredItems" :key="item.id">
+                                                        <li @click="selectItem(item)"
+                                                            class="px-4 py-2.5 text-sm text-gray-700 cursor-pointer hover:bg-emerald-50 hover:text-emerald-800 transition"
+                                                            role="option">
+                                                            <span class="block truncate" x-text="item.name"></span>
+                                                        </li>
+                                                    </template>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                        <x-input-error :messages="$errors->get('member_id')" class="mt-2" />
                                     </div>
                                     <div class="grid grid-cols-2 gap-4">
                                         <div>

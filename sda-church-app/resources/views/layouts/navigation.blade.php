@@ -23,7 +23,12 @@
                             {{ __('Departments') }}
                         </x-nav-link>
                     @elseif(Auth::user()->role === 'Member')
-                        @php $navAnnouncementCount = \App\Models\Announcement::active()->count(); @endphp
+                        @php 
+                            $navAnnouncementCount = \App\Models\Announcement::active()
+                                ->whereDoesntHave('readByUsers', function ($q) {
+                                    $q->where('user_id', Auth::id());
+                                })->count(); 
+                        @endphp
                         <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
                             {{ __('Dashboard') }}
                         </x-nav-link>
@@ -31,7 +36,7 @@
                            class="{{ request()->routeIs('member.announcements') ? 'border-primary-500 text-gray-900' : 'border-transparent text-neutral-500 hover:text-neutral-700 hover:border-neutral-300' }} inline-flex items-center gap-1.5 px-1 pt-1 border-b-2 text-sm font-medium leading-5 transition duration-150 ease-in-out">
                             {{ __('Announcements') }}
                             @if($navAnnouncementCount > 0)
-                                <span class="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold bg-primary-600 text-white rounded-full leading-none">
+                                <span id="announcement-badge-desktop" class="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold bg-primary-600 text-white rounded-full leading-none">
                                     {{ $navAnnouncementCount }}
                                 </span>
                             @endif
@@ -242,7 +247,7 @@
                 <x-responsive-nav-link :href="route('member.announcements')" :active="request()->routeIs('member.announcements')">
                     {{ __('Announcements') }}
                     @if(isset($navAnnouncementCount) && $navAnnouncementCount > 0)
-                        <span class="ml-1 inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold bg-primary-600 text-white rounded-full leading-none">
+                        <span id="announcement-badge-mobile" class="ml-1 inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 text-[10px] font-bold bg-primary-600 text-white rounded-full leading-none">
                             {{ $navAnnouncementCount }}
                         </span>
                     @endif
